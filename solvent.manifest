@@ -1,0 +1,5 @@
+requirements:
+- hash: 610bfcf5ab8ce0901d850ed7000a2280f32fc181
+  originURL: file:///home/me/repos/rootfs-vanilla
+- hash: 20db9c2ce861b3762a377a2080a8884a42be7ef7
+  originURL: file:///home/me/repos/rootfs-basic
