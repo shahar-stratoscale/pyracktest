@@ -34,6 +34,7 @@ class Executioner:
         discardinglogger.discardLogsOf(self.DISCARD_LOGGING_OF)
         self._hosts = dict()
         suite.findHost = self.host
+        suite.hosts = self.hosts
         if not hasattr(self._test, 'host'):
             self._test.host = self.host
         if not hasattr(self._test, 'hosts'):

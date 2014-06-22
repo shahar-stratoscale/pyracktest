@@ -8,4 +8,5 @@ def register(name, klass):
     and will be cached while the Host object exists
     """
     assert name not in plugins
+    assert isinstance(name, str)
     plugins[name] = klass

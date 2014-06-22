@@ -70,6 +70,7 @@ class Runner:
         root = self._args.scenariosRoot
         scenarios = \
             glob.glob(root + "/*.py") + \
+            glob.glob(root + "/*/*.py") + \
             glob.glob(root + "/*/*/*.py") + \
             glob.glob(root + "/*/*/*/*.py")
         for scenario in scenarios:
