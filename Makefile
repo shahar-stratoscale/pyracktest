@@ -1,4 +1,4 @@
-all: test check_convention
+all: check_convention
 
 clean:
 	rm -fr logs.racktest
