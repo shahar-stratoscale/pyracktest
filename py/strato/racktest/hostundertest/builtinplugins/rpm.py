@@ -1,6 +1,7 @@
 from strato.racktest.hostundertest import plugins
 import os
 import time
+import socket
 
 
 class RPM:
@@ -11,6 +12,15 @@ class RPM:
         basename = os.path.basename(path)
         self._host.ssh.ftp.putFile(basename, path)
         self._retryInstallPackageSinceAtBootTimeMightBeLocked(basename)
+
+    def yumInstall(self, packageList):
+        if isinstance(packageList, str):
+            packageList = [packageList]
+        self._host.ssh.run.script("yum install %s --assumeyes" % (" ".join(packageList)))
+
+    def makeYUMCachePointToTestRunner(self):
+        ip = self._myIPForHost()
+        self._host.ssh.run.script("sed -i 's/127.0.0.1/%s/' /etc/yum.conf" % ip)
 
     def _retryInstallPackageSinceAtBootTimeMightBeLocked(self, basename):
         RETRIES = 20
@@ -23,6 +33,14 @@ class RPM:
                     time.sleep(0.5)
                     continue
                 raise
+
+    def _myIPForHost(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            s.connect((self._host.node.ipAddress(), 1))
+            return s.getsockname()[0]
+        finally:
+            s.close()
 
 
 plugins.register('rpm', RPM)
