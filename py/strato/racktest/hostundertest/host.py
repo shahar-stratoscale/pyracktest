@@ -2,6 +2,7 @@ from rackattack.ssh import connection
 from strato.racktest.hostundertest import plugins
 
 import strato.racktest.hostundertest.builtinplugins.rpm
+import strato.racktest.hostundertest.builtinplugins.seed
 
 
 class Host:
