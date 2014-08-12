@@ -86,7 +86,7 @@ class Seed:
     def _pack(self, code, takeSitePackages):
         codeDir = tempfile.mkdtemp(suffix="_eggDir")
         try:
-            codeFile = os.path.join(codeDir,"seedentrypoint.py")
+            codeFile = os.path.join(codeDir, "seedentrypoint.py")
             with open(codeFile, "w") as f:
                 f.write(code)
             eggFile = tempfile.NamedTemporaryFile(suffix=".egg")
