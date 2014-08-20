@@ -2,6 +2,7 @@ from strato.whiteboxtest.infra.suite import *
 
 findHost = None
 hosts = None
+runOnEveryHost = None
 
 
 class _HostsGetter:

@@ -4,6 +4,7 @@ import subprocess
 from strato.racktest.infra import config
 import logging
 import multiprocessing.pool
+from strato.racktest.infra import suite
 
 
 class RackAttackAllocation:
@@ -17,11 +18,15 @@ class RackAttackAllocation:
 #       self._allocation.setForceReleaseCallback()
         self._allocation.wait(timeout=self._TIMEOUT)
         self._nodes = self._allocation.nodes()
+        assert suite.runOnEveryHost is None
+        suite.runOnEveryHost = self.runOnEveryHost
 
     def nodes(self):
         return self._nodes
 
     def free(self):
+        assert suite.runOnEveryHost == self.runOnEveryHost
+        suite.runOnEveryHost = None
         self._allocation.free()
 
     def _rackattackRequirements(self):
@@ -39,7 +44,7 @@ class RackAttackAllocation:
     def _rackattackAllocationInfo(self):
         return api.AllocationInfo(user=config.USER, purpose="racktest")
 
-    def runOnEvery(self, callback, description):
+    def runOnEveryHost(self, callback, description):
         pool = multiprocessing.pool.ThreadPool(processes=len(self._nodes))
         try:
             futures = [

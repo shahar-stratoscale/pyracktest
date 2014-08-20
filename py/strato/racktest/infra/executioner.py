@@ -74,7 +74,7 @@ class Executioner:
         return filename
 
     def _setUpHost(self, name):
-        host = hostundertest.host.Host(self._allocation.nodes()[name])
+        host = hostundertest.host.Host(self._allocation.nodes()[name], name)
         host.ssh.waitForTCPServer()
         host.ssh.connect()
         self._hosts[name] = host
@@ -82,7 +82,7 @@ class Executioner:
 
     def _setUp(self):
         logging.info("Setting up test in '%(filename)s'", dict(filename=self._filename()))
-        self._allocation.runOnEvery(self._setUpHost, "Setting up host")
+        self._allocation.runOnEveryHost(self._setUpHost, "Setting up host")
         try:
             getattr(self._test, 'setUp', lambda: None)()
         except:
@@ -114,4 +114,4 @@ class Executioner:
             suite.outputExceptionStackTrace()
             raise
         tearDownHost = getattr(self._test, 'tearDownHost', lambda x: x)
-        self._allocation.runOnEvery(tearDownHost, "Tearing down host")
+        self._allocation.runOnEveryHost(tearDownHost, "Tearing down host")
