@@ -99,7 +99,7 @@ class Seed:
                         os.environ, PYTHONPATH=codeDir + ":" + os.environ['PYTHONPATH']))
                 return eggFile.read()
             except subprocess.CalledProcessError as e:
-                raise Exception("Unable to pack egg, output: %(output)s" % e.output)
+                raise Exception("Unable to pack egg, output: %(output)s" % dict(output=e.output))
             finally:
                 eggFile.close()
         finally:
