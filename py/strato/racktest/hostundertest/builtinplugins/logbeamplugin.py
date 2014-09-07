@@ -1,17 +1,16 @@
 from strato.racktest.hostundertest import plugins
+from strato.racktest.infra import logbeamfromlocalhost
+import os
 import socket
 import threading
 import logbeam.config
 import logbeam.ftpserver
+import shutil
 import subprocess
 import string
-from strato.common import log
+import tempfile
+import codecs
 
-
-_server = None
-_serverLock = threading.Lock()
-_logbeamConfigurationLoaded = False
-_logbeamConfigurationLoadedLock = threading.Lock()
 
 # append to this if you have special needs
 POST_MORTEM_COMMANDS = [
@@ -53,38 +52,37 @@ class LogBeamPlugin:
             takeSitePackages=True)
 
     def postMortem(self):
+        self._postMortemCommands()
+        self._postMortemSerial()
+
+    def _postMortemCommands(self):
         script = "\n".join(
             "%s < /dev/null >& /tmp/postmortem/%s" % (command, self._safeFilename(command))
             for command in POST_MORTEM_COMMANDS)
         self._host.ssh.run.script('mkdir /tmp/postmortem\n%s\n' % script)
         self.beam("/tmp/postmortem", under="postmortem")
 
+    def _postMortemSerial(self):
+        serialFilePath = self._saveSerial()
+        logbeamfromlocalhost.beam([serialFilePath], under=os.path.join(self._host.name, "postmortem"))
+        shutil.rmtree(os.path.dirname(serialFilePath), ignore_errors=True)
+
+    def _saveSerial(self):
+        serialContent = self._host.node.fetchSerialLog()
+        tempDir = tempfile.mkdtemp()
+        serialFilePath = os.path.join(tempDir, "serial.txt")
+        self._writeUnicodeFile(serialContent, serialFilePath)
+        return serialFilePath
+
     def _safeFilename(self, unsafe):
         SAFE = string.ascii_letters + string.digits
         return "".join(c if c in SAFE else '_' for c in unsafe)
 
     def _configure(self):
-        if self._configured:
-            return
-        with _logbeamConfigurationLoadedLock:
-            global _logbeamConfigurationLoaded
-            if not _logbeamConfigurationLoaded:
-                logbeam.config.load()
-                _logbeamConfigurationLoaded = True
-        if self._logbeamPreviouslyConfiguredWithDestination():
-            config = subprocess.check_output(["logbeam", "createConfig", "--under", self._host.name])
-        else:
-            self._startServer()
-            config = (
-                "HOSTNAME: %s\nUSERNAME: %s\nPASSWORD: %s\nPORT: %d\nUPLOAD_TRANSPORT: ftp\n"
-                "BASE_DIRECTORY: '%s'\n") % (
-                    self._myIPForHost(), self._FTP_USERNAME, self._FTP_PASSWORD,
-                    _server.actualPort(), self._host.name)
+        config = logbeamfromlocalhost.logbeamConfigurationForPeer(
+            self._myIPForHost(), under=self._host.name)
         self._host.ssh.ftp.putContents("/etc/logbeam.config", config)
         self._configured = True
-
-    def _logbeamPreviouslyConfiguredWithDestination(self):
-        return logbeam.config.UPLOAD_TRANSPORT != "null"
 
     def _myIPForHost(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -94,15 +92,9 @@ class LogBeamPlugin:
         finally:
             s.close()
 
-    def _startServer(self):
-        global _server
-        global _serverLock
-        with _serverLock:
-            if _server is not None:
-                return
-            _server = logbeam.ftpserver.FTPServer(
-                directory=log.config.LOGS_DIRECTORY, port=0,
-                username=self._FTP_USERNAME, password=self._FTP_PASSWORD)
+    def _writeUnicodeFile(self, content, filePath):
+        with codecs.open(filePath, 'w', 'utf-8') as f:
+            f.write(content)
 
 
 plugins.register('logbeam', LogBeamPlugin)
