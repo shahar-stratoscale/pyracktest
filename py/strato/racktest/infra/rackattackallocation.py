@@ -1,10 +1,10 @@
 from rackattack import clientfactory
 from rackattack import api
-import subprocess
 from strato.racktest.infra import config
 import logging
 import multiprocessing.pool
 from strato.racktest.infra import suite
+from strato.racktest.infra import rootfslabel
 
 
 class RackAttackAllocation:
@@ -32,13 +32,12 @@ class RackAttackAllocation:
     def _rackattackRequirements(self):
         result = {}
         for name, requirements in self._hosts.iteritems():
-            rootfs = requirements['rootfs']
-            label = subprocess.check_output([
-                "solvent", "printlabel", "--repositoryBasename", rootfs, "--product=rootfs"]).strip()
+            rootfs = rootfslabel.RootfsLabel(requirements['rootfs'])
             hardwareConstraints = dict(requirements)
             del hardwareConstraints['rootfs']
             result[name] = api.Requirement(
-                imageLabel=label, imageHint=rootfs, hardwareConstraints=hardwareConstraints)
+                imageLabel=rootfs.label(), imageHint=rootfs.imageHint(),
+                hardwareConstraints=hardwareConstraints)
         return result
 
     def _rackattackAllocationInfo(self):
