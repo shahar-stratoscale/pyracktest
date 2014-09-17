@@ -19,8 +19,8 @@ class Test(unittest.TestCase):
         self.assertTrue(report[0]['passed'])
         self.assertTrue(report[1]['passed'])
         self.assertTrue(report[2]['passed'])
+        self.assertTrue(report[3]['passed'])
         self.assertTrue(report[4]['passed'])
-        self.assertTrue(report[5]['passed'])
 
 
 if __name__ == '__main__':
