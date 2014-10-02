@@ -14,13 +14,14 @@ class Test(unittest.TestCase):
             shell=True, close_fds=True, stderr=subprocess.STDOUT)
         with open('logs.racktest/racktestrunnerreport.json') as f:
             report = json.load(f)
-        self.assertEquals(len(report), 5)
+        self.assertEquals(len(report), 6)
         self.assertEquals(report[0]['scenario'], 'example_racktests/1_ping.py')
         self.assertTrue(report[0]['passed'])
         self.assertTrue(report[1]['passed'])
         self.assertTrue(report[2]['passed'])
         self.assertTrue(report[3]['passed'])
         self.assertTrue(report[4]['passed'])
+        self.assertTrue(report[5]['passed'])
 
 
 if __name__ == '__main__':
