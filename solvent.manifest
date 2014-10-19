@@ -1,8 +1,8 @@
 requirements:
-- hash: 2135ddb6d8465d8569d10026d254c0a9df6d804e
+- hash: aad66e10a9027cb65907d52be1b1b443eed45172
   originURL: https://github.com/Stratoscale/rootfs-vanilla.git
-- hash: 57ac88d36f96293cd5ecd2d64a63db867c220b5c
+- hash: b3a778629ffd908d5a39e10221c48dacf1098099
   originURL: https://github.com/Stratoscale/rootfs-basic.git
-- hash: e748e16567567a16d6112876c4b95ab88b64d76a
+- hash: 0a878517ddae009468893f86e2a8a41727186989
   originURL: https://github.com/Stratoscale/rootfs-build.git
 
