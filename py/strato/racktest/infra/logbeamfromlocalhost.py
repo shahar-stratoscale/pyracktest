@@ -3,6 +3,8 @@ import threading
 import logbeam.config
 import logbeam.upload
 import logbeam.ftpserver
+import subprocess
+import logging
 from strato.common import log
 
 
@@ -48,6 +50,7 @@ def _configureBeamFromLocal():
         _server = logbeam.ftpserver.FTPServer(
             directory=log.config.LOGS_DIRECTORY, port=0,
             username=_FTP_USERNAME, password=_FTP_PASSWORD)
+        logging.getLogger('pyftpdlib').setLevel(logging.WARNING)
         config = (
             "HOSTNAME: localhost\nUSERNAME: %s\nPASSWORD: %s\nPORT: %d\n"
             "UPLOAD_TRANSPORT: ftp\n") % (
