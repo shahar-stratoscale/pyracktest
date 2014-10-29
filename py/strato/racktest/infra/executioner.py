@@ -75,8 +75,13 @@ class Executioner:
 
     def _setUpHost(self, name):
         host = hostundertest.host.Host(self._allocation.nodes()[name], name)
-        host.ssh.waitForTCPServer()
-        host.ssh.connect()
+        try:
+            host.ssh.waitForTCPServer()
+            host.ssh.connect()
+        except:
+            logging.error("Rootfs did not wake up after inauguration. Saving serial file in postmortem dir")
+            host.logbeam.postMortemSerial()
+            raise
         self._hosts[name] = host
         getattr(self._test, 'setUpHost', lambda x: x)(name)
 
