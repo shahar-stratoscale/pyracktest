@@ -8,7 +8,7 @@ from strato.racktest.infra import rootfslabel
 
 
 class RackAttackAllocation:
-    _TIMEOUT = 5 * 60
+    _TIMEOUT = 10 * 60
 
     def __init__(self, hosts):
         self._hosts = hosts
