@@ -4,7 +4,7 @@ clean:
 	rm -fr logs.racktest
 
 racktest:
-	UPSETO_JOIN_PYTHON_NAMESPACES=yes PYTHONPATH=$(PWD):$(PWD)/py python tests/test.py $(REGEX)
+	UPSETO_JOIN_PYTHON_NAMESPACES=yes PYTHONPATH=$(PWD):$(PWD)/py python tests/test.py
 virttest:
 	RACKATTACK_PROVIDER=tcp://localhost:1014@tcp://localhost:1015 $(MAKE) racktest
 phystest:

@@ -13,7 +13,12 @@ import re
 import os
 import subprocess
 from strato.racktest.infra import suite
+from strato.racktest.infra import concurrently
+from strato.racktest.infra import handlekill
 from strato.racktest import runner
+import atexit
+import signal
+import threading
 
 _defaultReport = os.path.join(config.TEST_LOGS_DIR, "racktestrunnerreport.json")
 _defaultLiveReport = os.path.join(config.TEST_LOGS_DIR, "racktestrunnerlivereport.json")
@@ -29,6 +34,8 @@ parser.add_argument('--liveReportFilename', default=_defaultLiveReport)
 parser.add_argument("--reportFilename", default=_defaultReport)
 parser.add_argument("--scenariosRoot", default="racktests")
 parser.add_argument("--configurationFile", default="/etc/racktest.conf")
+parser.add_argument("--parallel", action="store_true")
+parser.add_argument("--repeat", type=int, default=0)
 args = parser.parse_args()
 if args.interactOnAssert:
     suite.enableInteractOnAssert()
@@ -38,20 +45,37 @@ config.load(args.configurationFile)
 class Runner:
     def __init__(self, args):
         self._args = args
+        self._liveReportLock = threading.Lock()
+        self._pids = []
+        atexit.register(self._killSubprocesses)
+        if args.repeat == 0:
+            self._instances = ['']
+        else:
+            self._instances = ['_try%d' % i for i in xrange(args.repeat)]
         self._scenarios = self._matchingScenarios()
         if len(self._scenarios) == 0:
             raise Exception("No scenarios files found")
-        self._currentlyRunning = {}
         self._results = []
 
-    def run(self):
+    def _killSubprocesses(self):
+        for pid in self._pids:
+            signal.signal(signal.SIGTERM, pid)
+
+    def runSequential(self):
         for scenario in self._scenarios:
-            self._currentlyRunning['localhost'] = dict(filename=scenario)
-            self._dumpLiveReport()
-            self._runScenario(scenario)
+            for instance in self._instances:
+                self._runScenario(scenario, instance)
+
+    def runParallel(self):
+        os.environ['RACKTEST_MINIMUM_NICE_FOR_RACKATTACK'] = "1.0"
+        jobs = []
+        for scenario in self._scenarios:
+            for instance in self._instances:
+                jobs.append(dict(callback=self._runScenario, scenario=scenario, instance=instance))
+        concurrently.run(jobs)
 
     def total(self):
-        return len(self._scenarios)
+        return len(self._scenarios) * len(self._instances)
 
     def passedCount(self):
         return len([res for res in self._results if res['passed']])
@@ -80,20 +104,30 @@ class Runner:
         return [s for s in scenarios if re.search(self._args.regex, s) is not None]
 
     def _dumpLiveReport(self):
-        everything = dict(
-            results=self._results, currentlyRunning=self._currentlyRunning, scenarios=self._scenarios)
-        with open(self._args.liveReportFilename, "w") as f:
-            json.dump(everything, f)
+        with self._liveReportLock:
+            everything = dict(
+                results=self._results, scenarios=self._scenarios, instances=self._instances)
+            with open(self._args.liveReportFilename, "w") as f:
+                json.dump(everything, f)
 
-    def _runScenario(self, scenario):
+    def _runScenario(self, scenario, instance):
         before = time.time()
-        result = subprocess.call(['python', _single, args.configurationFile, scenario], close_fds=True)
+        popen = subprocess.Popen(
+            ['python', _single, args.configurationFile, scenario, instance], close_fds=True)
+        self._pids.append(popen.pid)
+        result = popen.wait()
+        self._pids.remove(popen.pid)
         took = time.time() - before
-        self._results.append(dict(scenario=scenario, passed=result == 0, timeTook=took, host='localhost'))
+        self._results.append(dict(
+            scenario=scenario, instance=instance, passed=result == 0, timeTook=took, host='localhost'))
+        self._dumpLiveReport()
 
 
 runner = Runner(args)
-runner.run()
+if args.parallel:
+    runner.runParallel()
+else:
+    runner.runSequential()
 runner.writeReport()
 if runner.passedCount() < runner.total():
     logging.error(
