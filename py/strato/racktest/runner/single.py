@@ -8,24 +8,25 @@ from strato.common import log
 import imp
 
 
-def runSingleScenario(scenarioFilename):
+def runSingleScenario(scenarioFilename, instance):
     testName = os.path.splitext(scenarioFilename)[0].replace('/', '.')
-    _configureTestLogging(testName)
-    logging.info("Running '%(scenarioFilename)s' as a test class", dict(scenarioFilename=scenarioFilename))
+    _configureTestLogging(testName + instance)
+    logging.info("Running '%(scenarioFilename)s' as a test class (instance='%(instance)s')", dict(
+        scenarioFilename=scenarioFilename, instance=instance))
     try:
         module = imp.load_source('test', scenarioFilename)
         execute = executioner.Executioner(module.Test)
         execute.executeTestScenario()
     except:
         logging.exception(
-            "Failed running '%(scenarioFilename)s' as a test class",
-            dict(scenarioFilename=scenarioFilename))
+            "Failed running '%(scenarioFilename)s' as a test class (instance='%(instance)s')",
+            dict(scenarioFilename=scenarioFilename, instance=instance))
         logging.shutdown()
         raise
     finally:
         logging.info(
-            "Done Running '%(scenarioFilename)s' as a test class",
-            dict(scenarioFilename=scenarioFilename))
+            "Done Running '%(scenarioFilename)s' as a test class (instance='%(instance)s')",
+            dict(scenarioFilename=scenarioFilename, instance=instance))
         logging.shutdown()
 
 
@@ -38,4 +39,4 @@ def _configureTestLogging(testName):
 if __name__ == "__main__":
     import sys
     config.load(sys.argv[1])
-    runSingleScenario(sys.argv[2])
+    runSingleScenario(sys.argv[2], sys.argv[3])

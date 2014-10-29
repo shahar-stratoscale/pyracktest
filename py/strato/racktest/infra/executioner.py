@@ -68,7 +68,7 @@ class Executioner:
         os.kill(os.getpid(), signal.SIGKILL)
 
     def _filename(self):
-        filename = sys.modules[self.__class__.__module__].__file__
+        filename = sys.modules[self._test.__class__.__module__].__file__
         if filename.endswith(".pyc"):
             filename = filename[: -1]
         return filename
@@ -80,8 +80,8 @@ class Executioner:
             host.ssh.connect()
         except:
             logging.error(
-                 "Rootfs did not wake up after inauguration. Saving serial file in postmortem dir ",
-                 "host %(id)s name %(name)s", dict(id=host.node.id(), name=name))
+                "Rootfs did not wake up after inauguration. Saving serial file in postmortem dir ",
+                "host %(id)s name %(name)s", dict(id=host.node.id(), name=name))
             host.logbeam.postMortemSerial()
             raise
         self._hosts[name] = host
