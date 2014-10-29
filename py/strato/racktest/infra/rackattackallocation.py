@@ -5,7 +5,11 @@ import logging
 import multiprocessing.pool
 from strato.racktest.infra import suite
 from strato.racktest.infra import rootfslabel
-from strato.racktest import hostundertest
+import tempfile
+import os
+import shutil
+import codecs
+from strato.racktest.infra import logbeamfromlocalhost
 
 
 class RackAttackAllocation:
@@ -72,13 +76,16 @@ class RackAttackAllocation:
 
     def _postMortemAllocation(self):
         try:
-            nodes = self._allocation.nodes()
+            filename, contents = self._allocation.fetchPostMortemPack()
         except:
-            logging.exception("Unable to get nodes of a failed allocation, post mortem aborts")
+            logging.exception("Unable to get post mortem pack from rackattack provider")
             return
-        for name, node in nodes.iteritems():
-            host = hostundertest.host.Host(node, name)
-            try:
-                host.logbeam.postMortemSerial()
-            except:
-                logging.error("Unable to collect serial logs of host %(id)s", dict(id=host.id()))
+        tempDir = tempfile.mkdtemp()
+        try:
+            fullPath = os.path.join(tempDir, filename)
+            with codecs.open(fullPath, 'w', 'utf-8') as f:
+                f.write(contents)
+            logbeamfromlocalhost.beam([fullPath])
+        finally:
+            shutil.rmtree(tempDir, ignore_errors=True)
+        logging.info("Beamed post mortem pack into %(filename)s", dict(filename=filename))

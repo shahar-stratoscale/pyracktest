@@ -60,8 +60,10 @@ class LogBeamPlugin:
 
     def postMortemSerial(self):
         serialFilePath = self._saveSerial()
-        logbeamfromlocalhost.beam([serialFilePath], under=os.path.join(self._host.name, "postmortem"))
-        shutil.rmtree(os.path.dirname(serialFilePath), ignore_errors=True)
+        try:
+            logbeamfromlocalhost.beam([serialFilePath], under=os.path.join(self._host.name, "postmortem"))
+        finally:
+            shutil.rmtree(os.path.dirname(serialFilePath), ignore_errors=True)
 
     def _saveSerial(self):
         serialContent = self._host.node.fetchSerialLog()
