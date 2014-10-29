@@ -5,6 +5,7 @@ import logging
 import multiprocessing.pool
 from strato.racktest.infra import suite
 from strato.racktest.infra import rootfslabel
+from strato.racktest import hostundertest
 
 
 class RackAttackAllocation:
@@ -16,7 +17,12 @@ class RackAttackAllocation:
         self._allocation = self._client.allocate(
             requirements=self._rackattackRequirements(), allocationInfo=self._rackattackAllocationInfo())
 #       self._allocation.setForceReleaseCallback()
-        self._allocation.wait(timeout=self._TIMEOUT)
+        try:
+            self._allocation.wait(timeout=self._TIMEOUT)
+        except:
+            logging.exception("Allocation failed, attempting post mortem")
+            self._postMortemAllocation()
+            raise
         self._nodes = self._allocation.nodes()
         assert suite.runOnEveryHost is None
         suite.runOnEveryHost = self.runOnEveryHost
@@ -63,3 +69,16 @@ class RackAttackAllocation:
             logging.exception("When %(description)s on '%(name)s'", dict(
                 description=description, name=name))
             raise
+
+    def _postMortemAllocation(self):
+        try:
+            nodes = self._allocation.nodes()
+        except:
+            logging.exception("Unable to get nodes of a failed allocation, post mortem aborts")
+            return
+        for name, node in nodes.iteritems():
+            host = hostundertest.host.Host(node, name)
+            try:
+                host.logbeam.postMortemSerial()
+            except:
+                logging.error("Unable to collect serial logs of host %(id)s", dict(id=host.id()))
