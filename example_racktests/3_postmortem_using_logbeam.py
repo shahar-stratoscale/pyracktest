@@ -24,6 +24,7 @@ class Test:
         contents = open(serialLogFile).read()
         TS_ASSERT(uniqueString in contents)
         self.useLogBeamFromLocal()
+        self.beamADirectory()
 
     def useLogBeamFromLocal(self):
         tempDir = tempfile.mkdtemp()
@@ -34,4 +35,11 @@ class Test:
         finally:
             shutil.rmtree(tempDir, ignore_errors=True)
         expectedFile = os.path.join(log.config.LOGS_DIRECTORY, "someLog.txt")
+        TS_ASSERT(os.path.exists(expectedFile))
+
+    def beamADirectory(self):
+        host.it.ssh.run.script("mkdir /tmp/aDirectory")
+        host.it.ssh.run.script("echo hello > /tmp/aDirectory/bye")
+        host.it.logbeam.beam("/tmp/aDirectory/")
+        expectedFile = os.path.join(log.config.LOGS_DIRECTORY, "it", "bye")
         TS_ASSERT(os.path.exists(expectedFile))

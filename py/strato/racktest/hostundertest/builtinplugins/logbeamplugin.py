@@ -2,11 +2,7 @@ from strato.racktest.hostundertest import plugins
 from strato.racktest.infra import logbeamfromlocalhost
 import os
 import socket
-import threading
-import logbeam.config
-import logbeam.ftpserver
 import shutil
-import subprocess
 import string
 import tempfile
 import codecs
@@ -53,7 +49,7 @@ class LogBeamPlugin:
 
     def postMortem(self):
         self._postMortemCommands()
-        self._postMortemSerial()
+        self.postMortemSerial()
 
     def _postMortemCommands(self):
         script = "\n".join(
@@ -62,7 +58,7 @@ class LogBeamPlugin:
         self._host.ssh.run.script('mkdir /tmp/postmortem\n%s\n' % script)
         self.beam("/tmp/postmortem", under="postmortem")
 
-    def _postMortemSerial(self):
+    def postMortemSerial(self):
         serialFilePath = self._saveSerial()
         logbeamfromlocalhost.beam([serialFilePath], under=os.path.join(self._host.name, "postmortem"))
         shutil.rmtree(os.path.dirname(serialFilePath), ignore_errors=True)
