@@ -5,6 +5,7 @@ import tempfile
 import shutil
 import subprocess
 import os
+import logging
 
 
 class Seed:
@@ -99,6 +100,7 @@ class Seed:
                         os.environ, PYTHONPATH=codeDir + ":" + os.environ['PYTHONPATH']))
                 return eggFile.read()
             except subprocess.CalledProcessError as e:
+                logging.exception("Unable to pack egg, output: %(output)s" % dict(output=e.output))
                 raise Exception("Unable to pack egg, output: %(output)s" % dict(output=e.output))
             finally:
                 eggFile.close()
