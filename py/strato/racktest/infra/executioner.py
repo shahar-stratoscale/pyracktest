@@ -75,6 +75,8 @@ class Executioner:
 
     def _setUpHost(self, name):
         host = hostundertest.host.Host(self._allocation.nodes()[name], name)
+        logging.info("Host allocated: %(name)s: %(credentials)s", dict(
+            name=name, credentials=host.node.rootSSHCredentials()))
         try:
             host.ssh.waitForTCPServer()
             host.ssh.connect()
