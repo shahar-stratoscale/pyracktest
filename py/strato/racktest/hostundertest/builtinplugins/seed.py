@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import os
 import logging
+import time
 
 
 class Seed:
@@ -123,7 +124,15 @@ class _Forked:
             "PYTHONPATH=/tmp/seed%(unique)s.egg "
             "python -m seedentrypoint >& /tmp/output%(unique)s.txt" % dict(
                 unique=unique))
-        self._pid = host.ssh.ftp.getContents("/tmp/pid%s.txt" % unique).strip()
+        self._pid = self._getPid()
+
+    def _getPid(self):
+        for i in xrange(10):
+            try:
+                return self._host.ssh.ftp.getContents("/tmp/pid%s.txt" % self._unique).strip()
+            except:
+                time.sleep(0.1)
+        return self._host.ssh.ftp.getContents("/tmp/pid%s.txt" % self._unique).strip()
 
     def poll(self):
         if 'DEAD' not in self._host.ssh.run.script("test -d /proc/%s || echo DEAD" % self._pid):
