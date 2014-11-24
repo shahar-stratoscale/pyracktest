@@ -49,7 +49,10 @@ class Executioner:
             finally:
                 self._tearDown()
         finally:
-            self._allocation.free()
+            try:
+                self._allocation.free()
+            except:
+                logging.exception("Unable to free allocation")
 
     def _testTimedOut(self):
         logging.error(
