@@ -5,7 +5,6 @@ import socket
 import shutil
 import string
 import tempfile
-import codecs
 
 
 # append to this if you have special needs
@@ -91,7 +90,7 @@ class LogBeamPlugin:
             s.close()
 
     def _writeUnicodeFile(self, content, filePath):
-        with codecs.open(filePath, 'w', 'utf-8') as f:
+        with open(filePath, 'wb') as f:
             f.write(content)
 
 

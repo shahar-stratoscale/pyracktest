@@ -8,7 +8,6 @@ from strato.racktest.infra import rootfslabel
 import tempfile
 import os
 import shutil
-import codecs
 from strato.racktest.infra import logbeamfromlocalhost
 
 
@@ -69,7 +68,7 @@ class RackAttackAllocation:
         tempDir = tempfile.mkdtemp()
         try:
             fullPath = os.path.join(tempDir, filename)
-            with codecs.open(fullPath, 'w', 'utf-8') as f:
+            with open(fullPath, 'wb') as f:
                 f.write(contents)
             logbeamfromlocalhost.beam([fullPath])
         finally:
