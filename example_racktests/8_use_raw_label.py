@@ -2,7 +2,7 @@ from strato.racktest.infra.suite import *
 import subprocess
 
 ROOTFS_LABEL = subprocess.check_output([
-    "solvent", "printlabel", "--product=rootfs", "--repositoryBasename=rootfs-basic"])
+    "solvent", "printlabel", "--product=rootfs", "--repositoryBasename=rootfs-basic"]).strip()
 
 
 class Test:
