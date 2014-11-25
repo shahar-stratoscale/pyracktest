@@ -5,7 +5,7 @@ from strato.racktest.infra import rootfslabel
 
 class InauguratorPlugin:
     _INAUGURATOR_KERNEL = "/usr/share/inaugurator/inaugurator.vmlinuz"
-    _INAUGURATOR_INITRD = "/usr/share/inaugurator/inaugurator.initrd.img"
+    _INAUGURATOR_INITRD = "/usr/share/inaugurator/inaugurator.thin.initrd.img"
 
     def __init__(self, host):
         self._host = host

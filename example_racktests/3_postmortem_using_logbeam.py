@@ -5,6 +5,7 @@ from strato.common import log
 import time
 import shutil
 import tempfile
+import logging
 
 
 class Test:
@@ -19,6 +20,7 @@ class Test:
         TS_ASSERT(not os.path.exists(expectedFile))
         TS_ASSERT(not os.path.exists(serialLogFile))
         host.it.logbeam.postMortem()
+        logging.progress("Expected file: %(expectedFile)s", dict(expectedFile=expectedFile))
         TS_ASSERT(os.path.exists(expectedFile))
         TS_ASSERT(os.path.exists(serialLogFile))
         contents = open(serialLogFile).read()
@@ -42,4 +44,5 @@ class Test:
         host.it.ssh.run.script("echo hello > /tmp/aDirectory/bye")
         host.it.logbeam.beam("/tmp/aDirectory/")
         expectedFile = os.path.join(log.config.LOGS_DIRECTORY, "it", "bye")
+        logging.progress("Expected file: %(expectedFile)s", dict(expectedFile=expectedFile))
         TS_ASSERT(os.path.exists(expectedFile))

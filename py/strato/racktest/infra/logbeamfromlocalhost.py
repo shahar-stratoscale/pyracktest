@@ -5,6 +5,8 @@ import logbeam.upload
 import logbeam.ftpserver
 import subprocess
 import logging
+import time
+import socket
 from strato.common import log
 
 
@@ -57,3 +59,24 @@ def _configureBeamFromLocal():
                 _FTP_USERNAME, _FTP_PASSWORD, _server.actualPort())
         os.environ['LOGBEAM_CONFIG'] = config
         logbeam.config.load()
+        _waitForLocalhostTCPServer(_server.actualPort())
+
+
+def _waitForLocalhostTCPServer(port, timeout=5, interval=0.1):
+    before = time.time()
+    while time.time() - before < timeout:
+        if _rawTCPConnect(('localhost', port)):
+            return
+        time.sleep(interval)
+    raise Exception("Logbeam ftp server 'localhost:%s' did not respond within timeout" % port)
+
+
+def _rawTCPConnect(tcpEndpoint):
+    s = socket.socket()
+    try:
+        s.connect(tcpEndpoint)
+        return True
+    except:
+        return False
+    finally:
+        s.close()
