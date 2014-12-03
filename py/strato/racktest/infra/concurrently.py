@@ -2,8 +2,10 @@ import multiprocessing.pool
 import logging
 
 
-def run(jobs):
-    pool = multiprocessing.pool.ThreadPool(processes=len(jobs))
+def run(jobs, threads=None):
+    if threads is None:
+        threads = len(jobs)
+    pool = multiprocessing.pool.ThreadPool(processes=threads)
     try:
         futures = []
         for job in jobs:

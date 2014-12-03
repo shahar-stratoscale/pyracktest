@@ -34,7 +34,7 @@ parser.add_argument('--liveReportFilename', default=_defaultLiveReport)
 parser.add_argument("--reportFilename", default=_defaultReport)
 parser.add_argument("--scenariosRoot", default="racktests")
 parser.add_argument("--configurationFile", default="/etc/racktest.conf")
-parser.add_argument("--parallel", action="store_true")
+parser.add_argument("--parallel", type=int, default=0)
 parser.add_argument("--repeat", type=int, default=0)
 args = parser.parse_args()
 if args.interactOnAssert:
@@ -72,7 +72,7 @@ class Runner:
         for scenario in self._scenarios:
             for instance in self._instances:
                 jobs.append(dict(callback=self._runScenario, scenario=scenario, instance=instance))
-        concurrently.run(jobs)
+        concurrently.run(jobs, threads=self._args.parallel)
 
     def total(self):
         return len(self._scenarios) * len(self._instances)
