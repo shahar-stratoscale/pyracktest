@@ -74,6 +74,10 @@ class Runner:
                 jobs.append(dict(callback=self._runScenario, scenario=scenario, instance=instance))
         concurrently.run(jobs, threads=self._args.parallel)
 
+    def printScenarios(self):
+        for scenario in self._scenarios:
+            print scenario
+
     def total(self):
         return len(self._scenarios) * len(self._instances)
 
@@ -124,6 +128,9 @@ class Runner:
 
 
 runner = Runner(args)
+if args.listOnly:
+    runner.printScenarios()
+    sys.exit(0)
 if args.parallel:
     runner.runParallel()
 else:
