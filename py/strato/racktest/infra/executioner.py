@@ -85,7 +85,7 @@ class Executioner:
             host.ssh.connect()
         except:
             logging.error(
-                "Rootfs did not wake up after inauguration. Saving serial file in postmortem dir ",
+                "Rootfs did not wake up after inauguration. Saving serial file in postmortem dir "
                 "host %(id)s name %(name)s", dict(id=host.node.id(), name=name))
             host.logbeam.postMortemSerial()
             raise
