@@ -13,14 +13,14 @@ class Seed:
     def __init__(self, host):
         self._host = host
 
-    def runCode(self, code, takeSitePackages=False):
+    def runCode(self, code, takeSitePackages=False, outputTimeout=None):
         """
         make sure to assign to 'result' in order for the result to come back!
         for example: "runCode('import yourmodule\nresult = yourmodule.func()\n')"
         """
         unique = self._unique()
         self._install(code, unique, takeSitePackages)
-        output = self._run(unique)
+        output = self._run(unique, outputTimeout=outputTimeout)
         result = self._downloadResult(unique)
         return result, output
 
@@ -31,9 +31,13 @@ class Seed:
             takeSitePackages = True
             kwargs = dict(kwargs)
             del kwargs['takeSitePackages']
+        outputTimeout = None
+        if 'outputTimeout' in kwargs:
+            outputTimeout = kwargs['outputTimeout']
+            del kwargs['outputTimeout']
         unique = self._unique()
         self._installCallable(unique, callable, args, kwargs, takeSitePackages)
-        output = self._run(unique)
+        output = self._run(unique, outputTimeout=outputTimeout)
         result = self._downloadResult(unique)
         return result, output
 
@@ -108,8 +112,12 @@ class Seed:
         finally:
             shutil.rmtree(codeDir, ignore_errors=True)
 
-    def _run(self, unique):
-        return self._host.ssh.run.script("PYTHONPATH=/tmp/seed%s.egg python -m seedentrypoint" % unique)
+    def _run(self, unique, outputTimeout):
+        kwargs = {}
+        if outputTimeout is not None:
+            kwargs['outputTimeout'] = outputTimeout
+        return self._host.ssh.run.script(
+            "PYTHONPATH=/tmp/seed%s.egg python -m seedentrypoint" % unique, **kwargs)
 
     def _downloadResult(self, unique):
         return cPickle.loads(self._host.ssh.ftp.getContents("/tmp/result%s.pickle" % unique))
