@@ -14,6 +14,11 @@ class RootfsLabel:
         elif self._labelExists(self._rootfs):
             self._label = self._rootfs
             self._hint = self._rootfs
+        elif "__" in self._rootfs:
+            repository, product = self._rootfs.split("__")
+            self._label = run.run([
+                "solvent", "printlabel", "--repositoryBasename", repository, "--product", product]).strip()
+            self._hint = repository
         else:
             self._label = run.run([
                 "solvent", "printlabel", "--repositoryBasename", rootfs, "--product=rootfs"]).strip()

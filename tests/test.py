@@ -16,7 +16,7 @@ class Test(unittest.TestCase):
             shell=True, close_fds=True, stderr=subprocess.STDOUT)
         with open('logs.racktest/racktestrunnerreport.json') as f:
             report = json.load(f)
-        self.assertEquals(len(report), 7)
+        self.assertEquals(len(report), 8)
         scenarios = [o['scenario'] for o in report]
         self.assertIn('example_racktests/1_ping.py', scenarios)
         self.assertTrue(report[0]['passed'])
@@ -26,6 +26,7 @@ class Test(unittest.TestCase):
         self.assertTrue(report[4]['passed'])
         self.assertTrue(report[5]['passed'])
         self.assertTrue(report[6]['passed'])
+        self.assertTrue(report[7]['passed'])
 
 
 if __name__ == '__main__':
