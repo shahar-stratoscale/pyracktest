@@ -20,6 +20,7 @@ class Executioner:
 
     def __init__(self, klass):
         self._test = klass()
+        self._testTimeout = getattr(self._test, 'ABORT_TEST_TIMEOUT', self.ABORT_TEST_TIMEOUT_DEFAULT)
 
     def host(self, name):
         return self._hosts[name]
@@ -28,9 +29,8 @@ class Executioner:
         return self._hosts
 
     def executeTestScenario(self):
-        abortTestTimeout = getattr(self._test, 'ABORT_TEST_TIMEOUT', self.ABORT_TEST_TIMEOUT_DEFAULT)
-        timeoutthread.TimeoutThread(abortTestTimeout, self._testTimedOut)
-        logging.info("Test timer armed. Timeout in %(seconds)d seconds", dict(seconds=abortTestTimeout))
+        timeoutthread.TimeoutThread(self._testTimeout, self._testTimedOut)
+        logging.info("Test timer armed. Timeout in %(seconds)d seconds", dict(seconds=self._testTimeout))
         discardinglogger.discardLogsOf(self.DISCARD_LOGGING_OF)
         self._hosts = dict()
         suite.findHost = self.host
@@ -57,7 +57,7 @@ class Executioner:
     def _testTimedOut(self):
         logging.error(
             "Timeout: test is running for more than %(seconds)ds, aborting. You might need to increase "
-            "the scenario ABORT_TEST_TIMEOUT", dict(seconds=self.ABORT_TEST_TIMEOUT))
+            "the scenario ABORT_TEST_TIMEOUT", dict(seconds=self._testTimeout))
         timeoutthread.TimeoutThread(10, self._killSelf)
         timeoutthread.TimeoutThread(15, self._killSelfHard)
         self._killSelf()
