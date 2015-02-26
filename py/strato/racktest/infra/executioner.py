@@ -13,6 +13,7 @@ import sys
 
 class Executioner:
     ABORT_TEST_TIMEOUT_DEFAULT = 10 * 60
+    ON_TIMEOUT_CALLBACK_TIMEOUT_DEFAULT = 5 * 60
     DISCARD_LOGGING_OF = (
         'paramiko',
         'selenium.webdriver.remote.remote_connection',
@@ -21,6 +22,8 @@ class Executioner:
     def __init__(self, klass):
         self._test = klass()
         self._testTimeout = getattr(self._test, 'ABORT_TEST_TIMEOUT', self.ABORT_TEST_TIMEOUT_DEFAULT)
+        self._onTimeoutCallbackTimeout = getattr(
+            self._test, 'ON_TIMEOUT_CALLBACK_TIMEOUT', self.ON_TIMEOUT_CALLBACK_TIMEOUT_DEFAULT)
 
     def host(self, name):
         return self._hosts[name]
@@ -56,10 +59,18 @@ class Executioner:
 
     def _testTimedOut(self):
         logging.error(
-            "Timeout: test is running for more than %(seconds)ds, aborting. You might need to increase "
-            "the scenario ABORT_TEST_TIMEOUT", dict(seconds=self._testTimeout))
-        timeoutthread.TimeoutThread(10, self._killSelf)
-        timeoutthread.TimeoutThread(15, self._killSelfHard)
+            "Timeout: test is running for more than %(seconds)ds, calling 'onTimeout' and arming additional timer. "
+            "You might need to increase the scenario ABORT_TEST_TIMEOUT", dict(seconds=self._testTimeout))
+        timeoutthread.TimeoutThread(self._onTimeoutCallbackTimeout, self._killSelf)
+        timeoutthread.TimeoutThread(self._onTimeoutCallbackTimeout + 5, self._killSelfHard)
+        try:
+            getattr(self._test, 'onTimeout', lambda: None)()
+        except:
+            logging.exception(
+                "Failed 'onTimeout' callback for test in '%(filename)s', will commit suicide now", dict(filename=self._filename()))
+            suite.outputExceptionStackTrace()
+        else:
+            logging.info("'onTimeout' completed, will commit suicide now")
         self._killSelf()
         time.sleep(2)
         self._killSelfHard()
