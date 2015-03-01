@@ -36,6 +36,7 @@ parser.add_argument("--scenariosRoot", default="racktests")
 parser.add_argument("--configurationFile", default="/etc/racktest.conf")
 parser.add_argument("--parallel", type=int, default=0)
 parser.add_argument("--repeat", type=int, default=0)
+parser.add_argument("--allocationTimeout", type=int, default=10*60)
 args = parser.parse_args()
 if args.interactOnAssert:
     suite.enableInteractOnAssert()
@@ -64,7 +65,9 @@ class Runner:
     def runSequential(self):
         for scenario in self._scenarios:
             for instance in self._instances:
-                self._runScenario(scenario, instance)
+                self._runScenario(scenario,
+                                  instance,
+                                  self._args.allocationTimeout)
 
     def runParallel(self):
         os.environ['RACKTEST_MINIMUM_NICE_FOR_RACKATTACK'] = "1.0"
@@ -114,10 +117,11 @@ class Runner:
             with open(self._args.liveReportFilename, "w") as f:
                 json.dump(everything, f)
 
-    def _runScenario(self, scenario, instance):
+    def _runScenario(self, scenario, instance, allocation_timeout):
         before = time.time()
         popen = subprocess.Popen(
-            ['python', _single, args.configurationFile, scenario, instance], close_fds=True)
+            ['python', _single, args.configurationFile, scenario, instance,
+             str(allocation_timeout)], close_fds=True)
         self._pids.append(popen.pid)
         result = popen.wait()
         self._pids.remove(popen.pid)

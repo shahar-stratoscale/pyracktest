@@ -31,7 +31,7 @@ class Executioner:
     def hosts(self):
         return self._hosts
 
-    def executeTestScenario(self):
+    def executeTestScenario(self, allocation_timeout):
         timeoutthread.TimeoutThread(self._testTimeout, self._testTimedOut)
         logging.info("Test timer armed. Timeout in %(seconds)d seconds", dict(seconds=self._testTimeout))
         discardinglogger.discardLogsOf(self.DISCARD_LOGGING_OF)
@@ -43,7 +43,9 @@ class Executioner:
         if not hasattr(self._test, 'hosts'):
             self._test.hosts = self.hosts
         logging.info("Allocating Nodes")
-        self._allocation = rackattackallocation.RackAttackAllocation(self._test.HOSTS)
+        self._allocation = rackattackallocation.RackAttackAllocation(
+            self._test.HOSTS,
+            timeout=allocation_timeout)
         logging.progress("Done allocating nodes")
         try:
             self._setUp()

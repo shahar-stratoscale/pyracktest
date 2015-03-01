@@ -12,16 +12,14 @@ from strato.racktest.infra import logbeamfromlocalhost
 
 
 class RackAttackAllocation:
-    _TIMEOUT = 10 * 60
-
-    def __init__(self, hosts):
+    def __init__(self, hosts, timeout):
         self._hosts = hosts
         self._client = clientfactory.factory()
         self._allocation = self._client.allocate(
             requirements=self._rackattackRequirements(), allocationInfo=self._rackattackAllocationInfo())
 #       self._allocation.setForceReleaseCallback()
         try:
-            self._allocation.wait(timeout=self._TIMEOUT)
+            self._allocation.wait(timeout=timeout)
         except:
             logging.exception("Allocation failed, attempting post mortem")
             self._postMortemAllocation()

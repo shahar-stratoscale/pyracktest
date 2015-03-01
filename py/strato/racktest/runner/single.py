@@ -8,7 +8,7 @@ from strato.common import log
 import imp
 
 
-def runSingleScenario(scenarioFilename, instance):
+def runSingleScenario(scenarioFilename, instance, allocation_timeout):
     testName = os.path.splitext(scenarioFilename)[0].replace('/', '.')
     _configureTestLogging(testName + instance)
     logging.info("Running '%(scenarioFilename)s' as a test class (instance='%(instance)s')", dict(
@@ -16,7 +16,7 @@ def runSingleScenario(scenarioFilename, instance):
     try:
         module = imp.load_source('test', scenarioFilename)
         execute = executioner.Executioner(module.Test)
-        execute.executeTestScenario()
+        execute.executeTestScenario(allocation_timeout=allocation_timeout)
     except:
         logging.exception(
             "Failed running '%(scenarioFilename)s' as a test class (instance='%(instance)s')",
@@ -39,4 +39,6 @@ def _configureTestLogging(testName):
 if __name__ == "__main__":
     import sys
     config.load(sys.argv[1])
-    runSingleScenario(sys.argv[2], sys.argv[3])
+    runSingleScenario(sys.argv[2],
+                      sys.argv[3],
+                      allocation_timeout=int(sys.argv[4]))
