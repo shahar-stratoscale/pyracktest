@@ -1,5 +1,6 @@
 from strato.racktest.infra.suite import *
 from example_seeds import addition
+import time
 
 
 class Test:
@@ -24,3 +25,27 @@ class Test:
         TS_ASSERT(forked.poll())
         TS_ASSERT_EQUALS(forked.result(), 5)
         TS_ASSERT('OUTPUT LINE' in forked.output())
+
+        forked = host.it.seed.forkCode(
+            "import time\nwhile True: time.sleep(2)", takeSitePackages=True)
+        TS_ASSERT(forked.poll() is None)
+        TS_ASSERT(forked.poll() is None)
+        forked.kill()
+        for i in xrange(10):
+            if forked.poll() is None:
+                time.sleep(1)
+            else:
+                break
+        TS_ASSERT_EQUALS(forked.poll(), False)
+
+        forked = host.it.seed.forkCode(
+            "import time\nwhile True: time.sleep(2)", takeSitePackages=True)
+        TS_ASSERT(forked.poll() is None)
+        TS_ASSERT(forked.poll() is None)
+        forked.kill('TERM')
+        for i in xrange(10):
+            if forked.poll() is None:
+                time.sleep(1)
+            else:
+                break
+        TS_ASSERT_EQUALS(forked.poll(), False)

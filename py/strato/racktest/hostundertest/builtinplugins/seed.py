@@ -156,5 +156,10 @@ class _Forked:
     def output(self):
         return self._host.ssh.ftp.getContents("/tmp/output%s.txt" % self._unique)
 
+    def kill(self, signalName=None):
+        if signalName is None:
+            signalName = '9'
+        self._host.ssh.run.script("kill -%s %s" % (signalName, self._pid))
+
 
 plugins.register('seed', Seed)
